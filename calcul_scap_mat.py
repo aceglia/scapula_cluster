@@ -470,7 +470,7 @@ def compute_error(all_files, dic_init_mat, marker_names, mat_file_path, show=Tru
         data_dic = {"file: ": noms_de_fichier[i], "data": all_markers_dict[i],
                     "rmse_sl_scap": rmse_sl_scap[i, :], "rmse_scap_cluster": rmse_scap_cluster[i, :],
                     "rmse_sl_cluster": rmse_sl_cluster[i, :], "marker_names": marker_names,}
-        save(add_data=True, data_dict=data_dic, data_path="data_scap/P8/markers_file_recons.bio")
+        # save(add_data=True, data_dict=data_dic, data_path="data_scap/P7/markers_file_recons.bio")
     if print_error:
         print("Mean RMSE for AA, AI, TS between SL-SCAP : {}".format(np.mean(rmse_sl_scap, axis=0)))
         print("Mean RMSE for AA, AI, TS between SCAP-CLUSTER : {}".format(np.mean(rmse_scap_cluster, axis=0)))
@@ -489,8 +489,8 @@ if __name__ == '__main__':
 
     # data_files = "G:/Memoire S5/Prise de mesures/tiges/"
     # mat_file_path = "G:/Memoire S5/Projet/tracking_conf_mat_droite_02.json"
-    data_files = "data_scap/P7/"
-    mat_file_path = "data_scap/tracking_conf_mat_gauche_03.json"
+    data_files = "/home/amedeo/Documents/programmation/scapula_cluster/data_scap/P8/"
+    mat_file_path = "/home/amedeo/Documents/programmation/scapula_cluster/calibration_matrix/tracking_conf_mat_gauche_03.json"
 
     # main_dir = "/media/amedeo/E6AC-7D2A/lucas/test_scap_robin"
     all_files = glob.glob(data_files + "/**.c3d")
