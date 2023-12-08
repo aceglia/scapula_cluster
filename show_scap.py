@@ -20,8 +20,9 @@ for i, data in enumerate(data_mat):
         model = biorbd.Model("wu_reduc_left.bioMod")
         all_mark = np.concatenate((mat_sl, mat_cluster, mat_scap), axis=1)
         ik_function = MskFunctions(model=model, data_buffer_size=mat_sl[:, :, :].shape[2])
-        q, _ =  ik_function.compute_inverse_kinematics(markers=all_mark[:3, :, :]*0.001,
-                                               method=InverseKinematicsMethods.BiorbdLeastSquare)
+        q, _ = ik_function.compute_inverse_kinematics(
+            markers=all_mark[:3, :, :] * 0.001, method=InverseKinematicsMethods.BiorbdLeastSquare
+        )
         print("q sl:", np.mean(q[:3, :], axis=1) * 180 / np.pi)
         print("q cluster:", np.mean(q[6:9, :], axis=1) * 180 / np.pi)
         print("q scap:", np.mean(q[12:15, :], axis=1) * 180 / np.pi)
@@ -29,7 +30,7 @@ for i, data in enumerate(data_mat):
         #                                        method=InverseKinematicsMethods.BiorbdKalman)
         b = bioviz.Viz(loaded_model=model, show_markers=True)
         b.load_movement(q)
-        b.load_experimental_markers(all_mark[:3, :, :]*0.001)
+        b.load_experimental_markers(all_mark[:3, :, :] * 0.001)
         b.exec()
 
 should_continue = True

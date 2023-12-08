@@ -7,14 +7,9 @@ import pickle
 
 
 class ScapulaCluster:
-    def __init__(self,
-                 l_collar_ts,
-                 l_pointer_ts,
-                 l_pointer_ia,
-                 l_collar_ia,
-                 angle_wand_ia,
-                 l_wand_ia,
-                 calibration_matrix_path):
+    def __init__(
+        self, l_collar_ts, l_pointer_ts, l_pointer_ia, l_collar_ia, angle_wand_ia, l_wand_ia, calibration_matrix_path
+    ):
         self.l_collar_ts = l_collar_ts
         self.l_pointer_ts = l_pointer_ts
         self.l_pointer_ia = l_pointer_ia
@@ -24,33 +19,37 @@ class ScapulaCluster:
         self.calibration_matrix = calibration_matrix_path
         self.save_file = False
 
-    def process(self,
-                marker_cluster_positions: np.ndarray | list = None,
-                c3d_files: str | list = None,
-                marker_names: list = None,
-                cluster_marker_names: list = None,
-                frame_of_interest: np.ndarray = None,
-                save_file: bool = False,
-                save_in_picle: bool = False,
-                file_path: str = None,
-                data_rate: int = 100,
-                units: str = "mm") -> list:
+    def process(
+        self,
+        marker_cluster_positions: np.ndarray | list = None,
+        c3d_files: str | list = None,
+        marker_names: list = None,
+        cluster_marker_names: list = None,
+        frame_of_interest: np.ndarray = None,
+        save_file: bool = False,
+        save_in_picle: bool = False,
+        file_path: str = None,
+        data_rate: int = 100,
+        units: str = "mm",
+    ) -> list:
         """
         Process the data from the c3d files and return the scapula cluster position
         """
         self._load_calibration_matrix()
         if c3d_files and marker_cluster_positions:
             raise ValueError("You must provide either c3d_files or marker_cluster_positions")
-        return self._load_markers(marker_cluster_positions,
-                                  c3d_files,
-                                  marker_names,
-                                  cluster_marker_names,
-                                  frame_of_interest,
-                                  save_file,
-                                  save_in_picle,
-                                  file_path,
-                                  data_rate,
-                                  units)
+        return self._load_markers(
+            marker_cluster_positions,
+            c3d_files,
+            marker_names,
+            cluster_marker_names,
+            frame_of_interest,
+            save_file,
+            save_in_picle,
+            file_path,
+            data_rate,
+            units,
+        )
 
     def _load_calibration_matrix(self):
         calibration_matrix = json.load(open(self.calibration_matrix, "r"))
@@ -71,8 +70,9 @@ class ScapulaCluster:
         self.pos_ia_ts = pos_IA_TS
         self.l_wand_ia = self.l_wand_ia + calibration_matrix["length_pivot"]
         self.angle_wand_ia = self.angle_wand_ia * (np.pi / 180)
-        rot_m_a = self._create_axis_coordinates(cluster_in_Ra[0, :3], cluster_in_Ra[1, :3], cluster_in_Ra[2, :3])[:, :,
-                  0]
+        rot_m_a = self._create_axis_coordinates(cluster_in_Ra[0, :3], cluster_in_Ra[1, :3], cluster_in_Ra[2, :3])[
+            :, :, 0
+        ]
         self.mat_ra_to_rm = np.linalg.inv(rot_m_a)
 
     @staticmethod
@@ -82,7 +82,7 @@ class ScapulaCluster:
         else:
             right = False
         try:
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 data = json.load(file)
                 if matrix_name in data:
                     matrix = data[matrix_name]
@@ -96,7 +96,7 @@ class ScapulaCluster:
             if right:
                 matrice[0, 0] = np.cos(angle)
                 matrice[0, 2] = np.sin(angle)
-                matrice[2, 0] = - np.sin(angle)
+                matrice[2, 0] = -np.sin(angle)
                 matrice[2, 2] = np.cos(angle)
             else:
                 matrice[0, 0] = np.cos(angle)
@@ -108,8 +108,9 @@ class ScapulaCluster:
         return matrice
 
     @staticmethod
-    def _save_in_file(marker_pos, initial_position, marker_names, save_path: str,
-                      fps, save_in_picle: bool = False, units: str = "mm"):
+    def _save_in_file(
+        marker_pos, initial_position, marker_names, save_path: str, fps, save_in_picle: bool = False, units: str = "mm"
+    ):
         """
         Write data to a c3d file
         """
@@ -124,13 +125,17 @@ class ScapulaCluster:
             # Write the data
             c3d.write(save_path)
         else:
-            with open(save_path, 'wb') as file:
-                pickle.dump({"initial_marker_positions": initial_position,
-                             "markers_names": marker_names[:-3],
-                             "markers_from_cluster": {"positions": marker_pos, "names": marker_names[-3:]},
-                             "data_rate": fps,
-                             "units": units},
-                            file)
+            with open(save_path, "wb") as file:
+                pickle.dump(
+                    {
+                        "initial_marker_positions": initial_position,
+                        "markers_names": marker_names[:-3],
+                        "markers_from_cluster": {"positions": marker_pos, "names": marker_names[-3:]},
+                        "data_rate": fps,
+                        "units": units,
+                    },
+                    file,
+                )
 
     @staticmethod
     def _create_axis_coordinates(M1, M2, M3):
@@ -149,19 +154,24 @@ class ScapulaCluster:
 
     def _change_coordinate_system(self):
         ai, ts = self.pos_ia_ts[0], self.pos_ia_ts[1]
-        _1Ta = self._extract_transformation_matrix(self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix,
-                                                  "mat_R1toRa")
-        _2T1 = self._extract_transformation_matrix(self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix,
-                                                  "mat_R2toR1")
-        _3T2 = self._extract_transformation_matrix(self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix,
-                                                  "mat_R3toR2")
+        _1Ta = self._extract_transformation_matrix(
+            self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix, "mat_R1toRa"
+        )
+        _2T1 = self._extract_transformation_matrix(
+            self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix, "mat_R2toR1"
+        )
+        _3T2 = self._extract_transformation_matrix(
+            self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix, "mat_R3toR2"
+        )
         return _1Ta.dot(ts), _1Ta.dot(_2T1.dot(_3T2.dot(ai)))
 
     def _from_local_to_global(self, marker):
         ts_in_ra, ia_in_ra = self._change_coordinate_system()
-        ia_in_rm, ts_in_rm, aa_in_rm = self.mat_ra_to_rm.dot(ia_in_ra), \
-                                       self.mat_ra_to_rm.dot(ts_in_ra), \
-                                       self.mat_ra_to_rm.dot(np.array([0, 0, 0, 1]))
+        ia_in_rm, ts_in_rm, aa_in_rm = (
+            self.mat_ra_to_rm.dot(ia_in_ra),
+            self.mat_ra_to_rm.dot(ts_in_ra),
+            self.mat_ra_to_rm.dot(np.array([0, 0, 0, 1])),
+        )
 
         mat_rm_to_rg = self._create_axis_coordinates(marker[:3, 0, :], marker[:3, 1, :], marker[:3, 2, :])
         coord_gen = np.zeros((4, 3, mat_rm_to_rg.shape[2]))
@@ -171,9 +181,19 @@ class ScapulaCluster:
             coord_gen[:, 0, i] = np.dot(mat_rm_to_rg[:, :, i], aa_in_rm)
         return coord_gen
 
-    def _load_markers(self, marker_positions, all_files, marker_names=None, cluster_marker_names=None,
-                      frame_of_interest=None, save_file=False,
-                      save_in_pickle=False, file_path=None, data_rate=100, units="mm"):
+    def _load_markers(
+        self,
+        marker_positions,
+        all_files,
+        marker_names=None,
+        cluster_marker_names=None,
+        frame_of_interest=None,
+        save_file=False,
+        save_in_pickle=False,
+        file_path=None,
+        data_rate=100,
+        units="mm",
+    ):
         len_data = len(marker_positions) if marker_positions else len(all_files)
 
         if frame_of_interest:
@@ -204,7 +224,12 @@ class ScapulaCluster:
                 cluster_marker_names = cluster_marker_names.repeat(len_data, axis=0)
         if cluster_marker_names is not None and cluster_marker_names.shape[1] != 3:
             raise ValueError("cluster_marker_names must have a length of 3.")
-        if marker_names is not None and marker_names.shape[0] != len_data or cluster_marker_names is not None and cluster_marker_names.shape[0] != len_data:
+        if (
+            marker_names is not None
+            and marker_names.shape[0] != len_data
+            or cluster_marker_names is not None
+            and cluster_marker_names.shape[0] != len_data
+        ):
             raise ValueError("marker_names and all_files must have the same length if provided.")
 
         global_coordinates = []
@@ -212,7 +237,7 @@ class ScapulaCluster:
         for i in range(len_data):
             s, e = frame_of_interest[i][0], frame_of_interest[i][1]
             if all_files:
-                list_all_markers_data = (Markers.from_c3d(all_files[i]))
+                list_all_markers_data = Markers.from_c3d(all_files[i])
                 if e:
                     all_markers_data = list_all_markers_data.values[:, :, s:e]
                 else:
@@ -245,7 +270,8 @@ class ScapulaCluster:
                 else:
                     if m >= 3:
                         raise ValueError(
-                            "marker_names must be provided if more than 3 markers are present in the file.")
+                            "marker_names must be provided if more than 3 markers are present in the file."
+                        )
                     cluster[:, m, :] = all_markers_data[:, m, :]
                     count += 1
 
@@ -259,6 +285,13 @@ class ScapulaCluster:
             marker_names_tmp.append("scap_ia_from_cluster")
             marker_names_tmp.append("scap_ts_from_cluster")
             if save_file:
-                self._save_in_file(global_coordinates[-1], all_markers_data, marker_names_tmp,
-                                   file_path_tmp, data_rate, save_in_pickle, units)
+                self._save_in_file(
+                    global_coordinates[-1],
+                    all_markers_data,
+                    marker_names_tmp,
+                    file_path_tmp,
+                    data_rate,
+                    save_in_pickle,
+                    units,
+                )
         return global_coordinates

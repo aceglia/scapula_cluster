@@ -18,7 +18,7 @@ length_pivot = 7.5
 # Position of AI and TS markers in the cluster frame (depend on the position of the device).
 # The real position are found when running the main code.
 pos_AI_TS_r = [[5.69, 7.3 - 80, 14.25, 1], [-11.25, 7.3 - 80, 5.69, 1]]
-pos_AI_TS_l = [[-5.69, 7.3 - 80, - 16.25, 1], [-11.25, 7.3 - 80, -5.69, 1]]
+pos_AI_TS_l = [[-5.69, 7.3 - 80, -16.25, 1], [-11.25, 7.3 - 80, -5.69, 1]]
 
 # Please decomment the markers position corresponding to your configuration
 # ------- Reflective markers positions in Ra ------- #
@@ -42,28 +42,42 @@ def save_matrix(M1Ta, M2T1, M3T2, pos_ai_ts, markers_in_ra, suffix):
         "mat_R3toR2": M3T2,
         "pos_AI_TS": pos_ai_ts,
         "markers_in_Ra": markers_in_ra,
-        "length_pivot": length_pivot
+        "length_pivot": length_pivot,
     }
     calibration_file = f"calibration_{suffix}.json"
     with open(calibration_file, "w") as f:
         json.dump(dic, f, indent=4)
 
 
-save_matrix([[np.cos(alpha_1), -np.sin(alpha_1), 0, -31], [np.sin(alpha_1), np.cos(alpha_1), 0, 11.87],
-             [0, 0, 1, -2.5], [0, 0, 0, 1]],
-            [[1, 0, 0, -10000], [0, np.cos(beta_g), -np.sin(beta_g), 14.21], [0, np.sin(beta_g), np.cos(beta_g), -2.78],
-             [0, 0, 0, 1]],
-            [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0],
-             [0, 0, 0, 1]],
-            pos_AI_TS_l,
-            M_left_Ra,
-            "mat_left_reflective_markers")
+save_matrix(
+    [
+        [np.cos(alpha_1), -np.sin(alpha_1), 0, -31],
+        [np.sin(alpha_1), np.cos(alpha_1), 0, 11.87],
+        [0, 0, 1, -2.5],
+        [0, 0, 0, 1],
+    ],
+    [
+        [1, 0, 0, -10000],
+        [0, np.cos(beta_g), -np.sin(beta_g), 14.21],
+        [0, np.sin(beta_g), np.cos(beta_g), -2.78],
+        [0, 0, 0, 1],
+    ],
+    [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0], [0, 0, 0, 1]],
+    pos_AI_TS_l,
+    M_left_Ra,
+    "mat_left_reflective_markers",
+)
 
-save_matrix([[np.cos(alpha_1), -np.sin(alpha_1), 0, -31], [np.sin(alpha_1), np.cos(alpha_1), 0, 11.87],
-             [0, 0, 1, 2.5], [0, 0, 0, 1]],
-            [[1, 0, 0, -10000], [0, np.sin(beta), -np.cos(beta), 13.89], [0, np.cos(beta), np.sin(beta), 3.59],
-             [0, 0, 0, 1]],
-            [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0],
-             [0, 0, 0, 1]],
-            M_right_Ra,
-            pos_AI_TS_r, "mat_right_reflective_markers")
+save_matrix(
+    [
+        [np.cos(alpha_1), -np.sin(alpha_1), 0, -31],
+        [np.sin(alpha_1), np.cos(alpha_1), 0, 11.87],
+        [0, 0, 1, 2.5],
+        [0, 0, 0, 1],
+    ],
+    [[1, 0, 0, -10000], [0, np.sin(beta), -np.cos(beta), 13.89], [0, np.cos(beta), np.sin(beta), 3.59], [0, 0, 0, 1]],
+    [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0], [0, 0, 0, 1]],
+    M_right_Ra,
+    pos_AI_TS_r,
+    "mat_right_reflective_markers",
+)
