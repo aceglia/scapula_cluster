@@ -10,4 +10,5 @@ if __name__ == "__main__":
     data_files = "data_scap/P8/"
     all_files = glob.glob(data_files + "/**.c3d")
     names = ["M1", "M2", "M3"]
-    new_cluster.process(c3d_files=all_files, cluster_marker_names=names, save_file=True)
+    new_cluster.process(c3d_files=all_files, cluster_marker_names=names, save_file=False)
+    [aa_ts, aa_ia, ia_ts] = new_cluster.get_landmarks_distance()

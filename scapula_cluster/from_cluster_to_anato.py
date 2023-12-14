@@ -10,6 +10,7 @@ class ScapulaCluster:
     def __init__(
         self, l_collar_ts, l_pointer_ts, l_pointer_ia, l_collar_ia, angle_wand_ia, l_wand_ia, calibration_matrix_path
     ):
+        self.is_data_processed = False
         self.l_collar_ts = l_collar_ts
         self.l_pointer_ts = l_pointer_ts
         self.l_pointer_ia = l_pointer_ia
@@ -38,6 +39,7 @@ class ScapulaCluster:
         self._load_calibration_matrix()
         if c3d_files and marker_cluster_positions:
             raise ValueError("You must provide either c3d_files or marker_cluster_positions")
+        self.is_data_processed = True
         return self._load_markers(
             marker_cluster_positions,
             c3d_files,
@@ -74,6 +76,18 @@ class ScapulaCluster:
             :, :, 0
         ]
         self.mat_ra_to_rm = np.linalg.inv(rot_m_a)
+
+    def get_landmarks_distance(self):
+        """
+        Return the distance between the landmarks
+        """
+        if not self.is_data_processed:
+            raise RuntimeError("You must run the process function before using this function.")
+        ts_in_ra, ia_in_ra = self._get_ts_ai_in_ra()
+        aa_ts = np.linalg.norm(ts_in_ra)
+        aa_ia = np.linalg.norm(ia_in_ra)
+        ia_ts = np.linalg.norm((ts_in_ra - ia_in_ra))
+        return [aa_ts, aa_ia, ia_ts]
 
     @staticmethod
     def _extract_transformation_matrix(l, angle, file_path, matrix_name):
@@ -152,7 +166,7 @@ class ScapulaCluster:
         rt[3, 3, :] = 1
         return rt
 
-    def _change_coordinate_system(self):
+    def _get_ts_ai_in_ra(self):
         ai, ts = self.pos_ia_ts[0], self.pos_ia_ts[1]
         _1Ta = self._extract_transformation_matrix(
             self.l_wand_ia, self.angle_wand_ia, self.calibration_matrix, "mat_R1toRa"
@@ -166,7 +180,7 @@ class ScapulaCluster:
         return _1Ta.dot(ts), _1Ta.dot(_2T1.dot(_3T2.dot(ai)))
 
     def _from_local_to_global(self, marker):
-        ts_in_ra, ia_in_ra = self._change_coordinate_system()
+        ts_in_ra, ia_in_ra = self._get_ts_ai_in_ra()
         ia_in_rm, ts_in_rm, aa_in_rm = (
             self.mat_ra_to_rm.dot(ia_in_ra),
             self.mat_ra_to_rm.dot(ts_in_ra),
@@ -194,7 +208,13 @@ class ScapulaCluster:
         data_rate=100,
         units="mm",
     ):
-        len_data = len(marker_positions) if marker_positions else len(all_files)
+        if marker_positions is not None:
+            if not isinstance(marker_positions, list):
+                if len(marker_positions.shape) != 3:
+                    raise ValueError("marker_positions must be a list of 3D array or a single 3D array.")
+                marker_positions = [marker_positions]
+
+        len_data = len(marker_positions) if marker_positions is not None else len(all_files)
 
         if frame_of_interest:
             if len(frame_of_interest) != len_data:
@@ -207,11 +227,7 @@ class ScapulaCluster:
                         frame_of_interest[f] = [frame[0], None]
         else:
             frame_of_interest = [[0, None] for _ in range(len_data)]
-        if marker_positions:
-            if not isinstance(marker_positions, list):
-                if len(marker_positions.shape) != 3:
-                    raise ValueError("marker_positions must be a list of 3D array or a single 3D array.")
-                marker_positions = [marker_positions]
+
         if marker_names and isinstance(marker_names, list):
             marker_names = np.array(marker_names)
             if len(marker_names.shape) == 1:
@@ -250,6 +266,8 @@ class ScapulaCluster:
                 else:
                     file_path_tmp = all_files[i][:-4] + "_processed.c3d"
             else:
+                if marker_positions[i].shape[0] != 4:
+                    marker_positions[i] = np.append(( marker_positions[i]), np.ones_like(marker_positions[i][0:1, :, :]), axis=0)
                 all_markers_data = marker_positions[i][:, :, s:e]
                 if file_path:
                     file_path_tmp = file_path[i]
@@ -294,4 +312,6 @@ class ScapulaCluster:
                     save_in_pickle,
                     units,
                 )
+        if len(global_coordinates) == 1:
+            global_coordinates = global_coordinates[0]
         return global_coordinates
