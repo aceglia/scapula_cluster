@@ -34,6 +34,11 @@ M_right_Ra = [[-65.64, 37.4, -9.32, 1], [15.64, 37.4, -9.32, 1], [-25, 24.89, -6
 # M_right_Ra = [[-72.55, 40.66, -7.29, 1], [19.35, 44.05, -7.18, 1], [-27.5, 29.58, -69.96, 1]]
 # M_left_Ra = [[22.55, 40.66, 7.29, 1], [-69.35, 44.05, 7.18, 1], [-22.5, 29.58, 69.96, 1]]
 
+# ------- Custom screen for the RGBD camera (10/01/2024) ------- #
+# Found using vicon and small markers can be not optimal.
+M_left_Ra = [[-54.87, 29.84, -35.62, 1], [-40.56, 79.58, -61.19, 1], [-19.29, 31.92, -77.04, 1]]
+M_right_Ra = None
+
 
 def save_matrix(M1Ta, M2T1, M3T2, pos_ai_ts, markers_in_ra, suffix):
     dic = {

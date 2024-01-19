@@ -3,7 +3,7 @@ import bioviz
 import numpy as np
 from biosiglive import load, MskFunctions, InverseKinematicsMethods, save
 
-data_mat = load("data_scap/P8/markers_file_recons.bio", merge=False)
+data_mat = load("data/P9/markers_file_recons.bio", merge=False)
 all_bioviz = []
 
 for i, data in enumerate(data_mat):

@@ -1,0 +1,122 @@
+version 4
+
+// File extracted from data_final_new/subject_3/wu.osim
+
+gravity	0 0 -9.8000000000000007
+
+// SEGMENT DEFINITION
+    // Segment to cancel transformation bases effect.
+    // Segment
+    //True segment where are applied inertial values.
+    // Segment
+    segment scapula_left
+        parent ground
+        RTinMatrix    0
+        RT	0 0 0 	xyz	-0.0 -0.0 -0.0
+        mass 0.5
+        inertia
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+        com    -0.082662700000000006 -0.044775599999999999 -0.074626100000000001
+        rotations xyz
+        translations xyz
+        meshfile Geometry_left/scapula_left.vtp
+        meshscale 1.14 1.14 1.14
+    endsegment
+
+    // Markers
+
+    marker	SCAP_AA
+		parent	scapula_left
+		position	-0.050092682464580159 -0.0034308174648710762 -0.0071021673487889816
+	endmarker
+
+
+	marker	SCAP_IA
+		parent	scapula_left
+		position	-0.13204299999999999 -0.143512 0.090699399999999999
+	endmarker
+
+	marker	SCAP_TS
+		parent	scapula_left
+		position	-0.104647 -0.0145433 0.11171200000000001
+	endmarker
+
+
+
+
+// SEGMENT DEFINITION
+    // Segment to cancel transformation bases effect.
+    // Segment
+    //True segment where are applied inertial values.
+    // Segment
+    segment scapula_left_2
+        parent ground
+        RTinMatrix    0
+        RT	0 0 0 	xyz	-0.0 -0.0 -0.0
+        mass 0.5
+        inertia
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+        com    -0.082662700000000006 -0.044775599999999999 -0.074626100000000001
+        rotations xyz
+        translations xyz
+        meshfile Geometry_left/scapula_left.vtp
+        meshcolor 0.0 0.0 1.0
+        meshscale 1.14 1.14 1.14
+    endsegment
+
+    // Markers
+   	marker	SCAP_AA
+		parent	scapula_left_2
+		position	-0.050092682464580159 -0.0034308174648710762 -0.0071021673487889816
+	endmarker
+	marker	SCAP_IA
+		parent	scapula_left_2
+		position	-0.13204299999999999 -0.143512 0.090699399999999999
+	endmarker
+	marker	SCAP_TS
+		parent	scapula_left_2
+		position	-0.104647 -0.0145433 0.11171200000000001
+	endmarker
+
+
+
+   // SEGMENT DEFINITION
+    // Segment to cancel transformation bases effect.
+    // Segment
+    //True segment where are applied inertial values.
+    // Segment
+    segment scapula_left_3
+        parent ground
+        RTinMatrix    0
+        RT	0 0 0 	xyz	-0.0 -0.0 -0.0
+        mass 0.5
+        inertia
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+            0.0    0.0    0.0
+        com    -0.082662700000000006 -0.044775599999999999 -0.074626100000000001
+        rotations xyz
+        translations xyz
+        meshfile Geometry_left/scapula_left.vtp
+        meshcolor 1.0 0.0 1.0
+        meshscale 1.14 1.14 1.14
+    endsegment
+
+    // Markers
+	marker	SCAP_AA
+		parent	scapula_left_3
+		position	-0.050092682464580159 -0.0034308174648710762 -0.0071021673487889816
+	endmarker
+	marker	SCAP_IA
+		parent	scapula_left_3
+		position	-0.13204299999999999 -0.143512 0.090699399999999999
+	endmarker
+	marker	SCAP_TS
+		parent	scapula_left_3
+		position	-0.104647 -0.0145433 0.11171200000000001
+	endmarker
+
