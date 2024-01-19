@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pyomeca import Markers
 import biorbd
+from pathlib import Path
 import glob
 from biosiglive import MskFunctions, InverseKinematicsMethods
 from scapula_cluster.from_cluster_to_anato import ScapulaCluster
@@ -53,6 +54,19 @@ def eval_rmse(pt, pt_process):
             pt_process_wt_nan_idx = np.argwhere(np.isfinite(pt_process[:3, i, :]))[:, 1]
             all_idx = np.intersect1d(pt_wt_nan_idx, pt_process_wt_nan_idx)
             error.append(np.sqrt(np.mean((pt[:3, i, all_idx] - pt_process[:3, i, all_idx]) ** 2, axis=0)).mean())
+    return np.array(error)
+
+
+def eval_std(pt, pt_process):
+    error = []
+    for i in range(pt.shape[1]):
+        if np.mean(pt[:3, i, :]) == 0 or np.mean(pt_process[:3, i, :]) == 0:
+            error.append(0)
+        else:
+            pt_wt_nan_idx = np.argwhere(np.isfinite(pt[:3, i, :]))[:, 1]
+            pt_process_wt_nan_idx = np.argwhere(np.isfinite(pt_process[:3, i, :]))[:, 1]
+            all_idx = np.intersect1d(pt_wt_nan_idx, pt_process_wt_nan_idx)
+            error.append(np.sqrt(np.mean((pt[:3, i, all_idx] - pt_process[:3, i, all_idx]) ** 2, axis=0)).std())
     return np.array(error)
 
 
@@ -117,33 +131,69 @@ def load_markers(all_files, marker_names, frame_of_interest=None, scapula_locato
     return list_all_markers
 
 
-def compute_error(
-    all_files, marker_names, frame_of_interest=None, scapula_locator_correction=None, show_plot=True, print_error=True,
+def compute_mean_values(below_120, above_120, print_error):
+    mean_list_below = []
+    for data in below_120:
+        mean_list_below.append(np.mean(data[data.nonzero()]))
+    mean_list_above = []
+    for data in above_120:
+        mean_list_above.append(np.mean(data[data.nonzero()]))
+    # if print_error:
+    #     print(f"Mean RMSE for AA, AI, TS between SL-SCAP : {mean_list[0]}")
+    #     print(f"Mean RMSE for AA, AI, TS between SCAP-CLUSTER : {mean_list[1]}")
+    #     print(f"Mean RMSE for AA, AI, TS between SL-CLUSTER : {mean_list[2]}")
+    return mean_list_below, mean_list_above
+
+
+def compute_error(all_files, marker_names, frame_of_interest=None, scapula_locator_correction=None, show_plot=True, print_error=True,
         loaded_markers=None
 ):
+    rmse_dic = {}
     if loaded_markers:
         all_markers_dict = loaded_markers
     else:
         all_markers_dict = load_markers(all_files, marker_names, frame_of_interest, scapula_locator_correction)
-    rmse_sl_scap = np.zeros((len(all_files), 3))
-    rmse_scap_cluster = np.zeros((len(all_files), 3))
-    rmse_sl_cluster = np.zeros((len(all_files), 3))
+
+    couple_error = [
+        ["mat_sl", "mat_scap"],
+        ["mat_scap", "mat_cluster"],
+        ["mat_sl", "mat_cluster"]
+        ]
+    below_120 = [np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3))]
+    above_120 = [np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3))]
+    below_120_std = [np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3))]
+    above_120_std = [np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3)), np.zeros((len(all_files), 3))]
+    rmse_name = ["SL-SCAP",  "SCAP-CLUSTER", "SL-CLUSTER"]
     for i in range(len(all_markers_dict)):
-        rmse_sl_scap[i, :] = eval_rmse(all_markers_dict[i]["mat_sl"], all_markers_dict[i]["mat_scap"])
-        rmse_scap_cluster[i, :] = eval_rmse(all_markers_dict[i]["mat_scap"], all_markers_dict[i]["mat_cluster"])
-        rmse_sl_cluster[i, :] = eval_rmse(all_markers_dict[i]["mat_sl"], all_markers_dict[i]["mat_cluster"])
+        rmse_dic[f"file_{Path(all_files[i]).stem}"] = {}
         if print_error:
-            print("Error file {} :".format(all_files[i]))
-            print("RMSE for AA, AI, TS between SL-SCAP : {}".format(rmse_sl_scap[i, :]))
-            print("RMSE for AA, AI, TS between SCAP-CLUSTER : {}".format(rmse_scap_cluster[i, :]))
-            print("RMSE for AA, AI, TS between SL-CLUSTER : {}".format(rmse_sl_cluster[i, :]))
-    if print_error:
-        print("Mean RMSE for AA, AI, TS between SL-SCAP : {}".format(np.mean(rmse_sl_scap, axis=0)))
-        print("Mean RMSE for AA, AI, TS between SCAP-CLUSTER : {}".format(np.mean(rmse_scap_cluster, axis=0)))
-        print("Mean RMSE for AA, AI, TS between SL-CLUSTER : {}".format(np.mean(rmse_sl_cluster, axis=0)))
+            print("Error file {} :".format(Path(all_files[i]).stem))
+        for j, rmse in enumerate(rmse_name):
+            rmse = eval_rmse(all_markers_dict[i][couple_error[j][0]],
+                                                    all_markers_dict[i][couple_error[j][1]]
+                                                    )
+            # std = eval_std(all_markers_dict[i][couple_error[j][0]],
+            #                                         all_markers_dict[i][couple_error[j][1]]
+            #                                         )
+            rmse_dic[f"file_{Path(all_files[i]).stem}"][f"{rmse_name[j]}"] = rmse
+            # rmse_dic[f"file_{Path(all_files[i]).stem}"][f"{rmse_name[j]}_std"] = std
+
+            if "45" in Path(all_files[i]).stem or "90" in Path(all_files[i]).stem:
+                below_120[j][i, :] = rmse
+                # below_120_std[j][i, :] = std
+            elif "120" in Path(all_files[i]).stem or "150" in Path(all_files[i]).stem or "max" in Path(all_files[i]).stem:
+                above_120[j][i, :] = rmse
+                # above_120_std[j][i, :] = std
+            if print_error:
+                print(f"RMSE for AA, AI, TS between {rmse_name[j]} : {rmse_dic[f'file_{Path(all_files[i]).stem}'][f'{rmse_name[j]}']} ")
+    mean_bellow_120, mean_above_120 = compute_mean_values(below_120, above_120, print_error)
+    rmse_dic["all_files"] = {}
+    for i in range(3):
+        rmse_dic["all_files"][rmse_name[i]] = [mean_bellow_120[i], mean_above_120[i]]
     if show_plot:
         plot(all_markers_dict, all_files)
-    return rmse_sl_cluster, rmse_sl_scap, rmse_scap_cluster, all_markers_dict
+    return rmse_dic, all_markers_dict
+
 
 def _create_axis_coordinates(aa, ai, ts):
     first_axis_vector = ts[:3, :] - aa[:3, :]
@@ -245,15 +295,50 @@ def compute_helical_axis_angles(
     return rmse_sl_cluster, rmse_sl_scap, rmse_scap_cluster, all_markers_dict
 
 
+def compute_mean_participants(dic):
+    bellow_list = np.zeros((len(dic.keys()), 3))
+    above_list = np.zeros((len(dic.keys()), 3))
+    for k, key in enumerate(dic.keys()):
+        for j, jkey in enumerate(dic[key]["all_files"].keys()):
+            bellow_list[k, j] = dic[key]["all_files"][jkey][0]
+            above_list[k, j] = dic[key]["all_files"][jkey][1]
+        print(f"Mean error for participant {key}: ", bellow_list[k, :], above_list[k, :])
+    mean_bellow = bellow_list.mean(axis=0)
+    mean_above = above_list.mean(axis=0)
+    std_bellow = bellow_list.std(axis=0)
+    std_above = above_list.std(axis=0)
+    return mean_bellow, std_bellow, mean_above, std_above
+
+
+def find_files(path, participant):
+    all_files = glob.glob(path + f"{participant}/Session_1/**_processed.c3d")
+    if len(all_files) == 0:
+        all_files = glob.glob(path + f"{participant}/**_processed.c3d")
+    if len(all_files) == 0:
+        all_files = glob.glob(path + f"{participant}/session_1/**_processed.c3d")
+    if len(all_files) == 0:
+        raise ValueError(f"no c3d files found for participant {participant}")
+    files = [file for file in all_files if "abd" in file or "flex" in file or "cluster" in file]
+    return files
+
+
 if __name__ == "__main__":
     marker_names = {
         "sl": ["slaa", "slai", "slts"],
         "scap": ["scapaa", "scapia", "scapts"],
         "cluster": ["scap_aa_from_cluster", "scap_ia_from_cluster", "scap_ts_from_cluster"],
     }
-    data_files = "/mnt/shared/Projet_hand_bike_markerless/vicon/P11/session_1"
-    all_files = glob.glob(data_files + "/**_processed.c3d")
-    all_files = [file for file in all_files if "flex_90_avant_1_processed" not in file]
-    _, _, _, loaded_markers = compute_error(all_files, marker_names, scapula_locator_correction=-155, show_plot=False, print_error=True)
-    # angles = compute_helical_axis_angles(all_files, marker_names, scapula_locator_correction=-155, show_plot=True,
-    #                                      print_error=True, loaded_markers=loaded_markers)
+    data_dir = "/mnt/shared/Projet_hand_bike_markerless/vicon/"
+    participants = ["P5", "P6", "P7", "P8", "P9", "P10", "P11"]
+    all_errors = {}
+    for p, participant in enumerate(participants):
+        all_files = find_files(data_dir, participant)
+        rmse_dic, loaded_markers = compute_error(all_files,
+                                                 marker_names,
+                                                 scapula_locator_correction=-155,
+                                                 show_plot=False,
+                                                 print_error=False)
+        all_errors[f"{participant}"] = rmse_dic
+    compute_mean_participants(all_errors)
+        # angles = compute_helical_axis_angles(all_files, marker_names, scapula_locator_correction=-155, show_plot=True,
+        #                                      print_error=True, loaded_markers=loaded_markers)

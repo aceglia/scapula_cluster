@@ -7,7 +7,7 @@ data_mat = load("data_scap/P8/markers_file_recons.bio", merge=False)
 all_bioviz = []
 
 for i, data in enumerate(data_mat):
-    if "abduction_max_2" in data["file: "]:
+    if "abduction_90_2" in data["file: "]:
         print("curent_file is ", data["file: "])
         mat_sl = data["data"]["mat_sl"]
         mat_cluster = data["data"]["mat_cluster"]
@@ -17,7 +17,7 @@ for i, data in enumerate(data_mat):
         # mat_scap[idx_nan[:, 0], 0, idx_nan[:, 1]] = mat_cluster[idx_nan[:, 0], 0, idx_nan[:, 1]]
 
         mat_sl[:, 0, :] = mat_cluster[:, 0, :]
-        model = biorbd.Model("wu_reduc_left.bioMod")
+        model = biorbd.Model("models/wu_reduc_left.bioMod")
         all_mark = np.concatenate((mat_sl, mat_cluster, mat_scap), axis=1)
         ik_function = MskFunctions(model=model, data_buffer_size=mat_sl[:, :, :].shape[2])
         q, _ = ik_function.compute_inverse_kinematics(

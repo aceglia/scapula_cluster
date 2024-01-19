@@ -9,7 +9,7 @@ import numpy as np
 
 alpha_1 = 0 * (np.pi / 180)
 beta = 45 * (np.pi / 180)
-beta_g = -45 * np.pi / 180
+beta_g = -50 * np.pi / 180
 
 # Length of part "pivot" to allow to consider the middle of the joint when using the pivot position.
 # This length must be changed if the pivot part is changed.
@@ -21,7 +21,7 @@ pos_AI_TS_r = [[5.69, 7.3 - 80, 14.25, 1], [-11.25, 7.3 - 80, 5.69, 1]]
 pos_AI_TS_l = [[-5.69, 7.3 - 80, -16.25, 1], [-11.25, 7.3 - 80, -5.69, 1]]
 
 # Please decomment the markers position corresponding to your configuration
-# ------- Reflective markers positions in Ra ------- #
+# # ------- Reflective markers positions in Ra ------- #
 M_left_Ra = [[15.64, 37.4, 9.32, 1], [-65.64, 37.4, 9.32, 1], [-25, 24.89, 64.1, 1]]
 M_right_Ra = [[-65.64, 37.4, -9.32, 1], [15.64, 37.4, -9.32, 1], [-25, 24.89, -64.1, 1]]
 
@@ -65,7 +65,7 @@ save_matrix(
     [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0], [0, 0, 0, 1]],
     pos_AI_TS_l,
     M_left_Ra,
-    "mat_left_reflective_markers",
+    "mat_left_RGBD_markers",
 )
 
 save_matrix(
@@ -79,5 +79,5 @@ save_matrix(
     [[-10000, 0, -10000, 0], [0, 1, 0, 0], [-10000, 0, -10000, 0], [0, 0, 0, 1]],
     M_right_Ra,
     pos_AI_TS_r,
-    "mat_right_reflective_markers",
+    "mat_right_RGBD_markers",
 )
