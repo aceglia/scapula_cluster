@@ -95,10 +95,10 @@ def load_markers(all_files, marker_names, frame_of_interest=None, scapula_locato
         if e:
             all_markers_data = list_all_markers_data.values[:, :, s:e]
         else:
-            all_markers_data = list_all_markers_data.values[:, :, s:]
-        mat_sl = np.zeros((4, 3, list_all_markers_data.values.shape[2]))
-        mat_scap = np.zeros((4, 3, list_all_markers_data.values.shape[2]))
-        mat_cluster = np.zeros((4, 3, list_all_markers_data.values.shape[2]))
+            all_markers_data = all_markers_data.values[:, :, s:]
+        mat_sl = np.zeros((4, 3, all_markers_data.shape[2]))
+        mat_scap = np.zeros((4, 3, all_markers_data.shape[2]))
+        mat_cluster = np.zeros((4, 3, all_markers_data.shape[2]))
 
         for n, name in enumerate(list_all_markers_data.channel.values):
             if name in marker_names["sl"]:
@@ -172,29 +172,29 @@ def compute_helical_axis_angles(
     rmse_scap_cluster = np.zeros((len(all_files), 3))
     rmse_sl_cluster = np.zeros((len(all_files), 3))
     for i in range(len(all_markers_dict)):
-        model = biorbd.Model("models/wu_reduc_left.bioMod")
-        all_mark = np.concatenate((all_markers_dict[i]["mat_sl"],
-                                   all_markers_dict[i]["mat_cluster"],
-                                   all_markers_dict[i]["mat_scap"]), axis=1)
-        ik_function = MskFunctions(model=model, data_buffer_size=all_mark.shape[2])
-        q, _ = ik_function.compute_inverse_kinematics(
-            markers=all_mark[:3, :, :] * 0.001, method=InverseKinematicsMethods.BiorbdLeastSquare
-        )
-        rt_sl = np.zeros((4, 4, all_mark.shape[2]))
-        rt_scap = np.zeros((4, 4, all_mark.shape[2]))
-        rt_cluster = np.zeros((4, 4, all_mark.shape[2]))
-        for t in range(all_mark.shape[2]):
-            ik_function.model.UpdateKinematicsCustom(q[:, t], np.zeros_like(q[:, t]), np.zeros_like(q[:, t]))
-            all_jcs = [ik_function.model.allGlobalJCS()[b].to_array() for b in range(ik_function.model.nbSegment())]
-            rt_sl[:, :, t] = all_jcs[0]
-            rt_cluster[:, :, t] = all_jcs[1]
-            rt_scap[:, :, t] = all_jcs[2]
-        # rt_sl = _create_axis_coordinates(all_markers_dict[i]["mat_sl"][:, 0, :], all_markers_dict[i]["mat_sl"][:, 2, :],
-        #                                  all_markers_dict[i]["mat_sl"][:, 1, :])
-        # rt_scap = _create_axis_coordinates(all_markers_dict[i]["mat_scap"][:, 0, :], all_markers_dict[i]["mat_scap"][:, 2, :],
-        #                                  all_markers_dict[i]["mat_scap"][:, 1, :])
-        # rt_cluster = _create_axis_coordinates(all_markers_dict[i]["mat_cluster"][:, 0, :], all_markers_dict[i]["mat_cluster"][:, 2, :],
-        #                                     all_markers_dict[i]["mat_cluster"][:, 1, :])
+        # model = biorbd.Model("models/wu_reduc_left.bioMod")
+        # all_mark = np.concatenate((all_markers_dict[i]["mat_sl"],
+        #                            all_markers_dict[i]["mat_cluster"],
+        #                            all_markers_dict[i]["mat_scap"]), axis=1)
+        # ik_function = MskFunctions(model=model, data_buffer_size=all_mark.shape[2])
+        # q, _ = ik_function.compute_inverse_kinematics(
+        #     markers=all_mark[:3, :, :] * 0.001, method=InverseKinematicsMethods.BiorbdLeastSquare
+        # )
+        # rt_sl = np.zeros((4, 4, all_mark.shape[2]))
+        # rt_scap = np.zeros((4, 4, all_mark.shape[2]))
+        # rt_cluster = np.zeros((4, 4, all_mark.shape[2]))
+        # for t in range(all_mark.shape[2]):
+        #     ik_function.model.UpdateKinematicsCustom(q[:, t], np.zeros_like(q[:, t]), np.zeros_like(q[:, t]))
+        #     all_jcs = [ik_function.model.allGlobalJCS()[b].to_array() for b in range(ik_function.model.nbSegment())]
+        #     rt_sl[:, :, t] = all_jcs[0]
+        #     rt_cluster[:, :, t] = all_jcs[1]
+        #     rt_scap[:, :, t] = all_jcs[2]
+        rt_sl = _create_axis_coordinates(all_markers_dict[i]["mat_sl"][:, 0, :], all_markers_dict[i]["mat_sl"][:, 2, :],
+                                         all_markers_dict[i]["mat_sl"][:, 1, :])
+        rt_scap = _create_axis_coordinates(all_markers_dict[i]["mat_scap"][:, 0, :], all_markers_dict[i]["mat_scap"][:, 2, :],
+                                         all_markers_dict[i]["mat_scap"][:, 1, :])
+        rt_cluster = _create_axis_coordinates(all_markers_dict[i]["mat_cluster"][:, 0, :], all_markers_dict[i]["mat_cluster"][:, 2, :],
+                                            all_markers_dict[i]["mat_cluster"][:, 1, :])
         angle_tot = np.zeros((3, rt_sl.shape[2]))
         angle = np.zeros((3, 3, rt_sl.shape[2]))
         for j in range(rt_cluster.shape[2]):
@@ -247,13 +247,17 @@ def compute_helical_axis_angles(
 
 if __name__ == "__main__":
     marker_names = {
-        "sl": ["slaa", "slai", "slts"],
-        "scap": ["scapaa", "scapia", "scapts"],
+        "sl": [ "scapts", "slai", "slts"],
+        # "sl": ["M1", "M2", "M3"],
+        "scap": ["scapts", "scapaa", "scapia"],
         "cluster": ["scap_aa_from_cluster", "scap_ia_from_cluster", "scap_ts_from_cluster"],
     }
-    data_files = "/mnt/shared/Projet_hand_bike_markerless/vicon/P11/session_1"
-    all_files = glob.glob(data_files + "/**_processed.c3d")
-    all_files = [file for file in all_files if "flex_90_avant_1_processed" not in file]
-    _, _, _, loaded_markers = compute_error(all_files, marker_names, scapula_locator_correction=-155, show_plot=False, print_error=True)
-    # angles = compute_helical_axis_angles(all_files, marker_names, scapula_locator_correction=-155, show_plot=True,
-    #                                      print_error=True, loaded_markers=loaded_markers)
+    # data_files = r"Q:\Projet_hand_bike_markerless\vicon/P9/"
+    # all_files = glob.glob(data_files + "/**_processed.c3d")
+    # all_files = glob.glob(data_files + "/anato_processed.c3d")
+    all_files = ["calib_processed.c3d"]
+    # all_files = [file for file in all_files if "flex_90_avant_1_processed" not in file]
+    _, _, _, loaded_markers = compute_error(all_files,
+                                             marker_names,frame_of_interest=[[1050, 1060]], scapula_locator_correction=0, show_plot=True, print_error=True)
+    angles = compute_helical_axis_angles(all_files, marker_names, scapula_locator_correction=0, show_plot=False,
+                                         print_error=True, loaded_markers=loaded_markers)

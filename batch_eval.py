@@ -135,9 +135,12 @@ def compute_mean_values(below_120, above_120, print_error):
     mean_list_below = []
     for data in below_120:
         mean_list_below.append(np.mean(data[data.nonzero()]))
+        print("std:" , np.std(data[data.nonzero()]))
     mean_list_above = []
     for data in above_120:
         mean_list_above.append(np.mean(data[data.nonzero()]))
+        print("std:" , np.std(data[data.nonzero()]))
+
     # if print_error:
     #     print(f"Mean RMSE for AA, AI, TS between SL-SCAP : {mean_list[0]}")
     #     print(f"Mean RMSE for AA, AI, TS between SCAP-CLUSTER : {mean_list[1]}")
@@ -311,14 +314,15 @@ def compute_mean_participants(dic):
 
 
 def find_files(path, participant):
-    all_files = glob.glob(path + f"{participant}/Session_1/**_processed.c3d")
+    all_files = glob.glob(path + f"\{participant}/Session_1/**_processed.c3d")
     if len(all_files) == 0:
-        all_files = glob.glob(path + f"{participant}/**_processed.c3d")
+        all_files = glob.glob(path + f"\{participant}/**_processed.c3d")
     if len(all_files) == 0:
-        all_files = glob.glob(path + f"{participant}/session_1/**_processed.c3d")
+        all_files = glob.glob(path + f"\{participant}/session_1/**_processed.c3d")
     if len(all_files) == 0:
         raise ValueError(f"no c3d files found for participant {participant}")
     files = [file for file in all_files if "abd" in file or "flex" in file or "cluster" in file]
+    files = [file for file in files if "flex_90_avant_1_processed" not in file]
     return files
 
 
@@ -328,8 +332,8 @@ if __name__ == "__main__":
         "scap": ["scapaa", "scapia", "scapts"],
         "cluster": ["scap_aa_from_cluster", "scap_ia_from_cluster", "scap_ts_from_cluster"],
     }
-    data_dir = "/mnt/shared/Projet_hand_bike_markerless/vicon/"
-    participants = ["P5", "P6", "P7", "P8", "P9", "P10", "P11"]
+    data_dir = r"Q:\Projet_hand_bike_markerless\vicon"
+    participants = ["P10"]#, "P5", "P6", "P7", "P8", "P9", "P10"]
     all_errors = {}
     for p, participant in enumerate(participants):
         all_files = find_files(data_dir, participant)

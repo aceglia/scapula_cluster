@@ -75,6 +75,25 @@ class ScapulaCluster:
         rot_m_a = self._create_axis_coordinates(cluster_in_Ra[0, :3], cluster_in_Ra[1, :3], cluster_in_Ra[2, :3])[
             :, :, 0
         ]
+        # rot_m_a = np.linalg.inv(rot_m_a)
+        # import matplotlib.pyplot as plt
+        # fig = plt.figure("bis")
+        # ax = fig.add_subplot(111, projection='3d')
+        # ax.set_box_aspect([1, 1, 1])
+        # x_y_z = rot_m_a[:3, 3]
+        # vecx = rot_m_a[:3, 0]
+        # vecy = rot_m_a[:3, 1]
+        # vecz = rot_m_a[:3, 2]
+        # ax.quiver(x_y_z[0], x_y_z[1], x_y_z[2], vecx[0], vecx[1], vecx[2], length=60, normalize=False, color="r")
+        # ax.quiver(x_y_z[0], x_y_z[1], x_y_z[2], vecy[0], vecy[1], vecy[2], length=60, normalize=False, color="g")
+        # ax.quiver(x_y_z[0], x_y_z[1], x_y_z[2], vecz[0], vecz[1], vecz[2], length=60, normalize=False, color="b")
+        # ax.scatter(cluster_in_Ra[0, 0, ], cluster_in_Ra[ 0, 1,], cluster_in_Ra[ 0, 2,], c='r', marker='o')
+        # ax.scatter(cluster_in_Ra[1, 0, ], cluster_in_Ra[ 1, 1,], cluster_in_Ra[ 1, 2,], c='g', marker='o')
+        # ax.scatter(cluster_in_Ra[2, 0, ], cluster_in_Ra[ 2, 1,], cluster_in_Ra[ 2, 2,], c='b', marker='o')
+        # ax.set_xlabel('X Label')
+        # ax.set_ylabel('Y Label')
+        # ax.set_zlabel('Z Label')
+        # plt.show()
         self.mat_ra_to_rm = np.linalg.inv(rot_m_a)
 
     def get_landmarks_distance(self):
@@ -156,6 +175,8 @@ class ScapulaCluster:
         first_axis_vector = M3 - M1
         second_axis_vector = M2 - M1
         third_axis_vector = -np.cross(first_axis_vector, second_axis_vector, axis=0)
+        # third_axis_vector = np.cross(first_axis_vector, second_axis_vector, axis=0)
+
         second_axis_vector = np.cross(third_axis_vector, first_axis_vector, axis=0)
         n_frames = first_axis_vector.shape[1]
         rt = np.zeros((4, 4, n_frames))
@@ -180,14 +201,15 @@ class ScapulaCluster:
         return _1Ta.dot(ts), _1Ta.dot(_2T1.dot(_3T2.dot(ai)))
 
     def _from_local_to_global(self, marker):
+        aa_in_ra = np.array([0, 0, 0, 1])
         ts_in_ra, ia_in_ra = self._get_ts_ai_in_ra()
         ia_in_rm, ts_in_rm, aa_in_rm = (
             self.mat_ra_to_rm.dot(ia_in_ra),
             self.mat_ra_to_rm.dot(ts_in_ra),
             self.mat_ra_to_rm.dot(np.array([0, 0, 0, 1])),
         )
-
         mat_rm_to_rg = self._create_axis_coordinates(marker[:3, 0, :], marker[:3, 1, :], marker[:3, 2, :])
+
         coord_gen = np.zeros((4, 3, mat_rm_to_rg.shape[2]))
         for i in range(mat_rm_to_rg.shape[2]):
             coord_gen[:, 1, i] = np.dot(mat_rm_to_rg[:, :, i], ia_in_rm)
@@ -251,6 +273,7 @@ class ScapulaCluster:
         global_coordinates = []
         count = 0
         for i in range(len_data):
+            # print("Processing file %s" % all_files[i])
             s, e = frame_of_interest[i][0], frame_of_interest[i][1]
             if all_files:
                 list_all_markers_data = Markers.from_c3d(all_files[i])
@@ -282,9 +305,10 @@ class ScapulaCluster:
                     break
                 if len(marker_names_tmp) > 0:
                     name = marker_names_tmp[m]
-                if cluster_marker_names is not None and name is not None and name in cluster_marker_names[i]:
-                    cluster[:, cluster_marker_names[i].tolist().index(name), :] = all_markers_data[:, m, :]
-                    count += 1
+                if len(marker_names_tmp) > 0:
+                    if cluster_marker_names is not None and name is not None and name in cluster_marker_names[i]:
+                        cluster[:, cluster_marker_names[i].tolist().index(name), :] = all_markers_data[:, m, :]
+                        count += 1
                 else:
                     if m >= 3:
                         raise ValueError(
@@ -294,7 +318,7 @@ class ScapulaCluster:
                     count += 1
 
             if count != 3:
-                print("Warning: not all markers were found in file %s" % all_files[i])
+                print("Warning: not all markers were found in the file.")
             count = 0
             global_coordinates.append(self._from_local_to_global(cluster))
             if isinstance(marker_names_tmp, np.ndarray):
