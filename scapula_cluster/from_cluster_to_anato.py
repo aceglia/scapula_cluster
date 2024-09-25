@@ -19,6 +19,7 @@ class ScapulaCluster:
         self.l_wand_ia = l_wand_ia
         self.calibration_matrix = calibration_matrix_path
         self.save_file = False
+        self.calibration_matrix_loaded = False
 
     def process(
         self,
@@ -36,7 +37,8 @@ class ScapulaCluster:
         """
         Process the data from the c3d files and return the scapula cluster position
         """
-        self._load_calibration_matrix()
+        if not self.calibration_matrix_loaded:
+            self._load_calibration_matrix()
         if c3d_files and marker_cluster_positions:
             raise ValueError("You must provide either c3d_files or marker_cluster_positions")
         self.is_data_processed = True
@@ -95,6 +97,7 @@ class ScapulaCluster:
         # ax.set_zlabel('Z Label')
         # plt.show()
         self.mat_ra_to_rm = np.linalg.inv(rot_m_a)
+        self.calibration_matrix_loaded = True
 
     def get_landmarks_distance(self):
         """
@@ -209,12 +212,12 @@ class ScapulaCluster:
             self.mat_ra_to_rm.dot(np.array([0, 0, 0, 1])),
         )
         mat_rm_to_rg = self._create_axis_coordinates(marker[:3, 0, :], marker[:3, 1, :], marker[:3, 2, :])
-
         coord_gen = np.zeros((4, 3, mat_rm_to_rg.shape[2]))
         for i in range(mat_rm_to_rg.shape[2]):
-            coord_gen[:, 1, i] = np.dot(mat_rm_to_rg[:, :, i], ia_in_rm)
-            coord_gen[:, 2, i] = np.dot(mat_rm_to_rg[:, :, i], ts_in_rm)
-            coord_gen[:, 0, i] = np.dot(mat_rm_to_rg[:, :, i], aa_in_rm)
+            mat_rm_to_rg = self._create_axis_coordinates(marker[:3, 0, i:i+1], marker[:3, 1, i:i+1], marker[:3, 2, i:i+1])
+            coord_gen[:, 1, i] = np.dot(mat_rm_to_rg[:, :, 0], ia_in_rm)
+            coord_gen[:, 2, i] = np.dot(mat_rm_to_rg[:, :, 0], ts_in_rm)
+            coord_gen[:, 0, i] = np.dot(mat_rm_to_rg[:, :, 0], aa_in_rm)
         return coord_gen
 
     def _load_markers(
