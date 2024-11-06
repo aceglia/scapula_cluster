@@ -1,0 +1,38 @@
+{
+    "participant": "P14",
+    "ster_C7": 149,
+    "measure_names": [
+        "l_collar_TS",
+        "l_pointer_TS",
+        "l_pointer_IA",
+        "l_collar_IA",
+        "angle_wand_ia",
+        "l_wand_ia"
+    ],
+    "age": 21,
+    "height": 184,
+    "weight": 85,
+    "sexe": "M",
+    "with_depth": {
+        "calibration_matrix_name": "calibration_mat_left_RGBD_screen.json",
+        "measure": [
+            93,
+            35,
+            48,
+            153,
+            -9,
+            53
+        ]
+    },
+    "with_vicon": {
+        "calibration_matrix_name": "calibration_mat_left_reflective_markers.json",
+        "measure": [
+            80,
+            37,
+            55,
+            150,
+            -9,
+            50
+        ]
+    }
+}

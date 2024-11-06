@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.c3d
+*.zip
 
 # C extensions
 *.so
@@ -10,7 +12,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
-data*/
+data/
 develop-eggs/
 dist/
 downloads/

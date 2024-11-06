@@ -17,7 +17,7 @@ def find_files(path, participant, delete_old_files=False):
         for file in all_files:
             if "processed" in file:
                 os.remove(file)
-    # files = [file for file in all_files if ("abd" in file or "flex" in file or "cluster" in file)
+    # files = [file for file in all_file if ("abd" in file or "flex" in file or "cluster" in file)
     #          and file[:-4] + "_processed.c3d" not in all_files and "processed" not in file]
     files = [file for file in all_files if ("anato" in file)
              and file[:-4] + "_processed.c3d" not in all_files and "processed" not in file and "cluster" not in file]

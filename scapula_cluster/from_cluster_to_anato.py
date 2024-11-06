@@ -209,7 +209,7 @@ class ScapulaCluster:
         ia_in_rm, ts_in_rm, aa_in_rm = (
             self.mat_ra_to_rm.dot(ia_in_ra),
             self.mat_ra_to_rm.dot(ts_in_ra),
-            self.mat_ra_to_rm.dot(np.array([0, 0, 0, 1])),
+            self.mat_ra_to_rm.dot(aa_in_ra),
         )
         mat_rm_to_rg = self._create_axis_coordinates(marker[:3, 0, :], marker[:3, 1, :], marker[:3, 2, :])
         coord_gen = np.zeros((4, 3, mat_rm_to_rg.shape[2]))
