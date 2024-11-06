@@ -1,6 +1,9 @@
 import numpy as np
-from pyomeca import Markers
-import ezc3d
+try:
+    from pyomeca import Markers
+    import ezc3d
+except:
+    pass
 from pathlib import Path
 import json
 import pickle
